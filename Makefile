@@ -11,7 +11,7 @@ CONSTANTS=
 
 CXX=g++
 CXXFLAGS=-std=c++11 -g -Wall -Wno-unused -O3
-LFLAGS=-std=c++11 -O3
+LXXFLAGS=-std=c++11 -O3
 
 
 #-----------------------------------------------------------#
@@ -47,6 +47,8 @@ ifeq "$(PLATFORM)" "windows"
 	DEL=del /F/Q
 	OBJECTS_DEL=$(SOURCES:$(SRC)/%.cpp=$(OBJ)\\%.o)
 	
+	CXX=g++ -mwindows
+	
 	DEST=$(OUTPUT)
 endif
 
@@ -55,7 +57,7 @@ ifeq "$(PLATFORM)" "mingw"
 	DEL=rm -f
 	
 	# mingw stuff
-	CXX=mingw32-g++
+	CXX=mingw32-g++ -mwindows
 	
 	# msys stuff
 	LIBRARY:=-lmingw32 $(LIBRARY)
