@@ -4,8 +4,8 @@ OUTPUT=shoot
 SRC=src
 OBJ=obj
 
-INCLUDE=-I/include
-LIBRARY=-L/lib -lSDL2main -lSDL2
+INCLUDE=
+LIBRARY=-lSDL2main -lSDL2 -lopengl32
 
 CONSTANTS=
 
@@ -59,6 +59,8 @@ ifeq "$(PLATFORM)" "mingw"
 	
 	# msys stuff
 	LIBRARY:=-lmingw32 $(LIBRARY)
+	INCLUDE+=-I/include
+	LIBRARY+=-L/lib
 	
 	DEST=$(OUTPUT)
 endif
