@@ -4,9 +4,10 @@ OUTPUT=shoot
 SRC=src
 OBJ=obj
 
-INCLUDE=-I.
-LIBRARY=-lm
-CONSTANTS=BUILD_DEBUG
+INCLUDE=-I/include
+LIBRARY=-L/lib -lSDL2main -lSDL2
+
+CONSTANTS=
 
 CXX=g++
 CXXFLAGS=-std=c++11 -g -Wall -Wno-unused -O3
@@ -14,9 +15,6 @@ LFLAGS=-std=c++11 -O3
 
 
 #-----------------------------------------------------------#
-
-CXXFLAGS+=$(INCLUDE) $(CONSTANTS:%=-D%)
-LFLAGS+=$(LIBRARY)
 
 SOURCES=$(wildcard $(SRC)/*.cpp)
 OBJECTS=$(SOURCES:$(SRC)/%.cpp=$(OBJ)/%.o)
@@ -29,17 +27,18 @@ ifndef PLATFORM
 endif
 
 ifeq "$(PLATFORM)" "auto"
-	# got from http://stackoverflow.com/questions/714100/os-detecting-makefile
+	UNAME=$(shell uname -s)
 	ifeq "$(OS)" "Windows_NT"
 		PLATFORM=windows
-	else
-		UNAME=$(shell uname -s)
-		ifeq "$(UNAME)" "Linux"
-			PLATFORM=linux
-		endif
-		ifeq "$(UNAME)" "Darwin"
-			PLATFORM=osx
-		endif
+	endif
+	ifeq "$(UNAME)" "MINGW32_NT-6.1"
+		PLATFORM=mingw
+	endif
+	ifeq "$(UNAME)" "Linux"
+		PLATFORM=linux
+	endif
+	ifeq "$(UNAME)" "Darwin"
+		PLATFORM=osx
 	endif
 endif
 
@@ -48,8 +47,18 @@ ifeq "$(PLATFORM)" "windows"
 	DEL=del /F/Q
 	OBJECTS_DEL=$(SOURCES:$(SRC)/%.cpp=$(OBJ)\\%.o)
 	
+	DEST=$(OUTPUT)
+endif
+
+ifeq "$(PLATFORM)" "mingw"
+	OUTPUT:=$(OUTPUT).exe
+	DEL=rm -f
+	
 	# mingw stuff
-	LFLAGS+=
+	CXX=mingw32-g++
+	
+	# msys stuff
+	LIBRARY:=-lmingw32 $(LIBRARY)
 	
 	DEST=$(OUTPUT)
 endif
@@ -66,24 +75,37 @@ ifeq "$(PLATFORM)" "osx"
 endif
 
 
+CXXFLAGS+=$(INCLUDE) $(CONSTANTS:%=-D%)
+LXXFLAGS+=$(LIBRARY)
+
+
 all: $(DEST)
 
 usage:
 	@echo Use 'make PLATFORM=...' to set the platform
 	@echo Available platforms:
 	@echo     windows
+	@echo     mingw
 	@echo     linux
 
 bad_platform:
 	@echo Invalid platform '$(PLATFORM)'
 	
-$(OUTPUT): $(OBJECTS)
-	$(CXX) $(LFLAGS) -o $(OUTPUT) $(OBJECTS)
+$(OUTPUT): $(OBJECTS) $(OBJ) Makefile
+	$(CXX) $(OBJECTS) $(LXXFLAGS) -o $(OUTPUT)
 
 $(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $< $(CXXFLAGS) -c -o $@
 
 clean:
 	$(DEL) $(OBJECTS_DEL) $(OUTPUT)
 
+$(OBJ):
+	mkdir $(OBJ)
+#
+
+
+	
 rebuild: clean all
+go: all
+	./$(OUTPUT)
