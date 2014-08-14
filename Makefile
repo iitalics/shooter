@@ -5,7 +5,7 @@ SRC=src
 OBJ=obj
 
 INCLUDE=
-LIBRARY=-lSDL2main -lSDL2 -lopengl32
+LIBRARY=-lSDL2
 
 CONSTANTS=
 
@@ -43,11 +43,8 @@ ifeq "$(PLATFORM)" "auto"
 endif
 
 ifeq "$(PLATFORM)" "windows"
-	OUTPUT:=$(OUTPUT).exe
 	DEL=del /F/Q
 	OBJECTS_DEL=$(SOURCES:$(SRC)/%.cpp=$(OBJ)\\%.o)
-	
-	CXX=g++ -mwindows
 	
 	DEST=$(OUTPUT)
 endif
@@ -56,22 +53,28 @@ ifeq "$(PLATFORM)" "mingw"
 	OUTPUT:=$(OUTPUT).exe
 	DEL=rm -f
 	
-	# mingw stuff
-	CXX=mingw32-g++ -mwindows
-	
 	# msys stuff
-	LIBRARY:=-lmingw32 $(LIBRARY)
+	LIBRARY+=-L/lib -lmingw32
 	INCLUDE+=-I/include
-	LIBRARY+=-L/lib
 	
 	DEST=$(OUTPUT)
 endif
+
+# windows with or without msys/mingw
+ifeq "$(OS)" "Windows_NT"
+	OUTPUT:=$(OUTPUT).exe
+
+	LIBRARY:=-lSDL2main -lopengl32 $(LIBRARY)
+endif
+
 
 ifeq "$(PLATFORM)" "linux"
 	# use -f to ignore missing files
 	DEL=rm -f
 	
 	DEST=$(OUTPUT)
+
+	LIBRARY+=-lGL
 endif
 
 ifeq "$(PLATFORM)" "osx"
@@ -83,7 +86,7 @@ CXXFLAGS+=$(INCLUDE) $(CONSTANTS:%=-D%)
 LXXFLAGS+=$(LIBRARY)
 
 
-all: $(DEST)
+all: $(OBJ) $(DEST)
 
 usage:
 	@echo Use 'make PLATFORM=...' to set the platform
@@ -95,7 +98,7 @@ usage:
 bad_platform:
 	@echo Invalid platform '$(PLATFORM)'
 	
-$(OUTPUT): $(OBJECTS) $(OBJ) Makefile
+$(OUTPUT): $(OBJECTS) Makefile
 	$(CXX) $(OBJECTS) $(LXXFLAGS) -o $(OUTPUT)
 
 $(OBJ)/%.o: $(SRC)/%.cpp
