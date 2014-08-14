@@ -42,6 +42,15 @@ ifeq "$(PLATFORM)" "auto"
 	endif
 endif
 
+# windows with or without msys/mingw
+ifeq "$(OS)" "Windows_NT"
+	OUTPUT:=$(OUTPUT).exe
+
+	LIBRARY:=-lSDL2main -lopengl32 $(LIBRARY)
+	LXXFLAGS+=-mwindows
+endif
+
+
 ifeq "$(PLATFORM)" "windows"
 	DEL=del /F/Q
 	OBJECTS_DEL=$(SOURCES:$(SRC)/%.cpp=$(OBJ)\\%.o)
@@ -50,21 +59,13 @@ ifeq "$(PLATFORM)" "windows"
 endif
 
 ifeq "$(PLATFORM)" "mingw"
-	OUTPUT:=$(OUTPUT).exe
 	DEL=rm -f
 	
 	# msys stuff
-	LIBRARY+=-L/lib -lmingw32
+	LIBRARY:=-L/lib -lmingw32 $(LIBRARY)
 	INCLUDE+=-I/include
 	
 	DEST=$(OUTPUT)
-endif
-
-# windows with or without msys/mingw
-ifeq "$(OS)" "Windows_NT"
-	OUTPUT:=$(OUTPUT).exe
-
-	LIBRARY:=-lSDL2main -lopengl32 $(LIBRARY)
 endif
 
 
