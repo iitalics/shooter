@@ -4,8 +4,10 @@
 #include <cstdlib>
 
 Display::Display ()
-	: _window(nullptr),
+	: _title("simple thing"),
+		_window(nullptr),
 		_ctx(nullptr),
+		_ticks(0), _dta(0),
 		_quit(false)
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -13,7 +15,18 @@ Display::Display ()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-	setOptions(906, 640, false);
+	setOptions(1240, 680, false);
+
+	SDL_AddTimer(1000 / 100, 
+			[] (u32 i, void* _)
+			{
+				SDL_Event e;
+				e.type = SDL_USEREVENT;
+				e.user.type = SDL_USEREVENT;
+				e.user.code = 0;
+				SDL_PushEvent(&e);
+				return i;
+			}, nullptr);
 }
 
 Display::~Display ()
@@ -24,7 +37,14 @@ Display::~Display ()
 
 std::string Display::title () const
 {
-	return "simple shooter";
+	return _title;
+}
+std::string Display::setTitle (const std::string& t)
+{
+	if (_window)
+		SDL_SetWindowTitle(_window, t.c_str());
+	
+	return _title = t;
 }
 
 std::ostream& Display::die ()
@@ -72,7 +92,7 @@ void Display::setOptions (int w, int h, bool fs)
 	}
 
 	_window =
-		SDL_CreateWindow(title().c_str(),
+		SDL_CreateWindow(_title.c_str(),
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
 			_width = w, _height = h,
@@ -80,15 +100,15 @@ void Display::setOptions (int w, int h, bool fs)
 			SDL_WINDOW_OPENGL |
 			(fs ? SDL_WINDOW_FULLSCREEN : 0));
 
-	// vsync
-	SDL_UpdateWindowSurface(_window);
-
 	if (!_window)
 	{
 		die() << "unable to create SDL window";
 		return;
 	}
 
+	// vsync
+	SDL_GL_SetSwapInterval(1);
+	
 	// create openGL context
 	_ctx = SDL_GL_CreateContext(_window);
 
@@ -123,6 +143,8 @@ bool Display::show ()
 		return false;
 	}
 
+	bool up = true; //false;
+
 	// poll events
 	SDL_Event e;
 	while (SDL_PollEvent(&e))
@@ -132,27 +154,54 @@ bool Display::show ()
 			_quit = true;
 			return false;
 
+		case SDL_USEREVENT:
+			up = true;
+			break;
+
 		default:
 			break;
 		}
 
 	if (!_window)
 		return true;
-
-	// update
 	
-	// draw
-	color(.6f, .7f, .9f).glApplyClear();
-
-	color(0, 0, 0).gl();
-	glBegin(GL_LINES);
-	for (int i = 0; i < 10; i++)
+	if (up)
 	{
-		vec2f(0, math::random(height())).gl();
-		vec2f(width(), math::random(height())).gl();
+		// get delta time
+		u32 now = SDL_GetTicks();
+		u32 diff = now - _ticks;
+		_ticks = now;
+
+		// eliminate unusual errors
+		if (diff > (1000 / MinFPS))
+			diff = 1000 / MinFPS;
+		else if (diff == 0)
+		 	diff = 1000 / MaxFPS;
+
+
+		const float ddt = 1.f / FPS; // desired fps
+
+		float dt = diff / 1000.f;
+
+		if (_view != nullptr)
+		{
+			_dta += dt;
+			while (_dta >= ddt)
+			{
+				_view->update(this, ddt);
+				_dta -= ddt;
+			}
+			_view->draw(this);
+		}
+		else
+			color(.5f, .8f, 1.f).glApplyClear();
 	}
-	glEnd();
 
 	SDL_GL_SwapWindow(_window);
+	SDL_Delay(5);
 	return true;
 }
+
+
+View::~View () {}
+void View::update (Display* disp, float dt) {}

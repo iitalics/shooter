@@ -6,6 +6,13 @@ class View;
 class Display
 {
 public:
+	enum
+	{
+		MinFPS = 10,
+		MaxFPS = 120,
+
+		FPS = 60
+	};
 	Display ();
 	~Display ();
 
@@ -22,11 +29,17 @@ public:
 	inline void quit () { _quit = true; }
 
 	std::string title () const;
+	std::string setTitle (const std::string&);
 	inline int width () const { return _width; }
 	inline int height () const { return _height; }
 private:
+	std::string _title;
 	SDL_Window* _window;
 	SDL_GLContext _ctx;
+
+	// timing
+	u32 _ticks;
+	float _dta; // accumulation
 
 	std::unique_ptr<View> _view, _oldView;
 
