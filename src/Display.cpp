@@ -65,7 +65,7 @@ void Display::_dump ()
 
 	if (!sdlerr.empty())
 		ss << "+ SDL error: " << std::endl
-		   << "|   " << SDL_GetError() << std::endl;
+		   << "|   " << sdlerr << std::endl;
 
 	std::cerr << ss.str();
 	

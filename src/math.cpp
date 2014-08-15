@@ -1,5 +1,4 @@
 #include "include.h"
-#include "math.hpp"
 #include <random>
 #include <chrono>
 

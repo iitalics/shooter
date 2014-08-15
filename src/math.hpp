@@ -1,5 +1,4 @@
-#ifndef VEC2_H
-#define VEC2_H
+#pragma once
 
 #include <cmath>
 #include <string>
@@ -175,5 +174,3 @@ namespace math
 typedef vec2<float> vec2f;
 typedef vec2<int> vec2i;
 typedef rectangle<float> rect;
-
-#endif // VEC2_H
