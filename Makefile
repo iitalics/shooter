@@ -1,5 +1,5 @@
 PLATFORM=auto
-PUBLISH=bin
+PUBLISH=
 
 
 OUTPUT=shoot
@@ -16,14 +16,17 @@ GLOBAL_HEADERS=include.h
 
 
 CXX=g++
-CXXFLAGS=-std=c++11 -g -Wall -Wno-unused -O3
-LXXFLAGS=-std=c++11 -O3
+CXXFLAGS=-std=c++11 -Wall -Wno-unused -O2
+LXXFLAGS=-std=c++11 -O2
 
 
 #-----------------------------------------------------------#
 
 ifndef PUBLISH
 CONSTANTS+=BUILD_DEBUG
+CXXFLAGS+=-g
+else
+LXXFLAGS+=-s
 endif
 
 SOURCES=$(wildcard $(SRC)/*.cpp)
