@@ -1,13 +1,19 @@
 PLATFORM=auto
+PUBLISH=bin
+
 
 OUTPUT=shoot
+BIN=bin
 SRC=src
 OBJ=obj
+
 
 INCLUDE=
 LIBRARY=-lSDL2
 
 CONSTANTS=
+GLOBAL_HEADERS=include.h
+
 
 CXX=g++
 CXXFLAGS=-std=c++11 -g -Wall -Wno-unused -O3
@@ -16,11 +22,16 @@ LXXFLAGS=-std=c++11 -O3
 
 #-----------------------------------------------------------#
 
+ifndef PUBLISH
+CONSTANTS+=BUILD_DEBUG
+endif
+
 SOURCES=$(wildcard $(SRC)/*.cpp)
 OBJECTS=$(SOURCES:$(SRC)/%.cpp=$(OBJ)/%.o)
 OBJECTS_DEL=$(OBJECTS)
 
 DEST=bad_platform
+EXEC=$(BIN)/$(OUTPUT)
 
 ifndef PLATFORM
 	DEST=usage
@@ -46,8 +57,10 @@ endif
 ifeq "$(OS)" "Windows_NT"
 	OUTPUT:=$(OUTPUT).exe
 
-	LIBRARY:=-lSDL2main -lopengl32 $(LIBRARY)
-	LXXFLAGS+=-mwindows
+	LIBRARY:=-lopengl32 -lSDL2main $(LIBRARY)
+	ifdef PUBLISH
+		LXXFLAGS+=-mwindows
+	endif
 endif
 
 
@@ -55,17 +68,19 @@ ifeq "$(PLATFORM)" "windows"
 	DEL=del /F/Q
 	OBJECTS_DEL=$(SOURCES:$(SRC)/%.cpp=$(OBJ)\\%.o)
 	
-	DEST=$(OUTPUT)
+	DEST=$(EXEC)
 endif
 
 ifeq "$(PLATFORM)" "mingw"
 	DEL=rm -f
 	
 	# msys stuff
-	LIBRARY:=-L/lib -lmingw32 $(LIBRARY)
+	ifndef HACKY_64
+		LIBRARY:=-L/lib -lmingw32 $(LIBRARY)
+	endif
 	INCLUDE+=-I/include
 	
-	DEST=$(OUTPUT)
+	DEST=$(EXEC)
 endif
 
 
@@ -73,7 +88,7 @@ ifeq "$(PLATFORM)" "linux"
 	# use -f to ignore missing files
 	DEL=rm -f
 	
-	DEST=$(OUTPUT)
+	DEST=$(EXEC)
 
 	LIBRARY+=-lGL
 endif
@@ -83,11 +98,17 @@ ifeq "$(PLATFORM)" "osx"
 endif
 
 
+ifdef HACKY_64
+	CXX=g++-64
+	LIBRARY+=-L/lib/64
+endif
+
+
 CXXFLAGS+=$(INCLUDE) $(CONSTANTS:%=-D%)
 LXXFLAGS+=$(LIBRARY)
 
 
-all: $(OBJ) $(DEST)
+all: $(OBJ) $(BIN) $(DEST)
 
 usage:
 	@echo Use 'make PLATFORM=...' to set the platform
@@ -99,9 +120,10 @@ usage:
 bad_platform:
 	@echo Invalid platform '$(PLATFORM)'
 	
-$(OUTPUT): $(OBJECTS) Makefile
-	$(CXX) $(OBJECTS) $(LXXFLAGS) -o $(OUTPUT)
+$(EXEC): $(OBJECTS) Makefile
+	$(CXX) $(OBJECTS) $(LXXFLAGS) -o $@
 
+$(OBJ)/%.o: $(GLOBAL_HEADERS:%=$(SRC)/%)
 $(OBJ)/%.o: $(SRC)/%.cpp
 	$(CXX) $< $(CXXFLAGS) -c -o $@
 
@@ -109,11 +131,13 @@ clean:
 	$(DEL) $(OBJECTS_DEL) $(OUTPUT)
 
 $(OBJ):
-	mkdir $(OBJ)
+	mkdir $@
+$(BIN):
+	mkdir $@
 #
 
 
 	
 rebuild: clean all
 go: all
-	./$(OUTPUT)
+	cd $(BIN) && ./$(OUTPUT)
