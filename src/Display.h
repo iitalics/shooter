@@ -11,12 +11,13 @@ public:
 		MinFPS = 10,
 		MaxFPS = 120,
 
-		FPS = 60
+		DefaultFPS = 60
 	};
 	Display ();
 	~Display ();
 
 	void setOptions (int w, int h, bool fs);
+	inline void setFramerate (int fps) { _fps = fps; }
 
 	void setView (std::unique_ptr<View>&& view);
 	inline void setView (View* view)
@@ -38,8 +39,9 @@ private:
 	SDL_GLContext _ctx;
 
 	// timing
-	u32 _ticks;
-	float _dta; // accumulation
+	u32 _ticks,
+		_accumulate,
+		_fps;
 
 	std::unique_ptr<View> _view, _oldView;
 

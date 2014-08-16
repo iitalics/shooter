@@ -7,7 +7,7 @@ Display::Display ()
 	: _title("simple thing"),
 		_window(nullptr),
 		_ctx(nullptr),
-		_ticks(0), _dta(0),
+		_ticks(0), _accumulate(0), _fps(DefaultFPS),
 		_quit(false)
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -16,17 +16,6 @@ Display::Display ()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
 	setOptions(1240, 680, false);
-
-	SDL_AddTimer(1000 / 100, 
-			[] (u32 i, void* _)
-			{
-				SDL_Event e;
-				e.type = SDL_USEREVENT;
-				e.user.type = SDL_USEREVENT;
-				e.user.code = 0;
-				SDL_PushEvent(&e);
-				return i;
-			}, nullptr);
 }
 
 Display::~Display ()
@@ -179,17 +168,15 @@ bool Display::show ()
 		 	diff = 1000 / MaxFPS;
 
 
-		const float ddt = 1.f / FPS; // desired fps
-
-		float dt = diff / 1000.f;
-
+		const u32 desired_diff = 1000 / _fps;
+		
 		if (_view != nullptr)
 		{
-			_dta += dt;
-			while (_dta >= ddt)
+			_accumulate += diff;
+			while (_accumulate >= desired_diff)
 			{
-				_view->update(this, ddt);
-				_dta -= ddt;
+				_view->update(this, 1.f / _fps);
+				_accumulate -= desired_diff;
 			}
 			_view->draw(this);
 		}
@@ -198,7 +185,7 @@ bool Display::show ()
 	}
 
 	SDL_GL_SwapWindow(_window);
-	SDL_Delay(5);
+	SDL_Delay(2);
 	return true;
 }
 
