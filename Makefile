@@ -12,7 +12,7 @@ INCLUDE=
 LIBRARY=-lSDL2
 
 CONSTANTS=
-GLOBAL_HEADERS=include.h
+GLOBAL_HEADERS=include.h math.hpp
 
 
 CXX=g++

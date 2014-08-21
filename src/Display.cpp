@@ -132,8 +132,6 @@ bool Display::show ()
 		return false;
 	}
 
-	bool up = true; //false;
-
 	// poll events
 	SDL_Event e;
 	while (SDL_PollEvent(&e))
@@ -143,10 +141,6 @@ bool Display::show ()
 			_quit = true;
 			return false;
 
-		case SDL_USEREVENT:
-			up = true;
-			break;
-
 		default:
 			break;
 		}
@@ -154,35 +148,32 @@ bool Display::show ()
 	if (!_window)
 		return true;
 	
-	if (up)
+	// get delta time
+	u32 now = SDL_GetTicks();
+	u32 diff = now - _ticks;
+	_ticks = now;
+
+	// eliminate unusual errors
+	if (diff > (1000 / MinFPS))
+		diff = 1000 / MinFPS;
+	else if (diff == 0)
+		diff = 1000 / MaxFPS;
+
+	// constant framerate for update()
+	const u32 desired_diff = 1000 / _fps;
+	
+	if (_view != nullptr)
 	{
-		// get delta time
-		u32 now = SDL_GetTicks();
-		u32 diff = now - _ticks;
-		_ticks = now;
-
-		// eliminate unusual errors
-		if (diff > (1000 / MinFPS))
-			diff = 1000 / MinFPS;
-		else if (diff == 0)
-		 	diff = 1000 / MaxFPS;
-
-
-		const u32 desired_diff = 1000 / _fps;
-		
-		if (_view != nullptr)
+		_accumulate += diff;
+		while (_accumulate >= desired_diff)
 		{
-			_accumulate += diff;
-			while (_accumulate >= desired_diff)
-			{
-				_view->update(this, 1.f / _fps);
-				_accumulate -= desired_diff;
-			}
-			_view->draw(this);
+			_view->update(this, 1.f / _fps);
+			_accumulate -= desired_diff;
 		}
-		else
-			color(.5f, .8f, 1.f).glApplyClear();
+		_view->draw(this);
 	}
+	else
+		color(.5f, .8f, 1.f).glApplyClear();
 
 	SDL_GL_SwapWindow(_window);
 	SDL_Delay(2);
