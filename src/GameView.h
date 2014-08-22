@@ -14,7 +14,6 @@ public:
 	virtual void update (Display* disp, float dt);
 	virtual void draw (Display* disp);
 
-
 private:
 	Game _game;
 };

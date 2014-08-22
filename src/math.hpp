@@ -85,11 +85,24 @@ struct rectangle
 
     void gl ()
     {
-        glVertex2f((float)x, (float)y);
-        glVertex2f((float)(x + width), (float)y);
-        glVertex2f((float)(x + width), (float)(y + height));
-        glVertex2f((float)x, (float)(y + height));
+        glVertex2f(float(x),         float(y));
+        glVertex2f(float(x + width), float(y));
+        glVertex2f(float(x + width), float(y + height));
+        glVertex2f(float(x),         float(y + height));
     }
+	void glLineStrip ()
+	{
+		glBegin(GL_LINE_STRIP);
+		gl();
+		glVertex2f(float(x), float(y));
+		glEnd();
+	}
+	inline void glQuad ()
+	{
+		glBegin(GL_QUADS);
+		gl();
+		glEnd();
+	}
 
     rectangle<T> operator+ (const vec2<T>& a) const
         { return rectangle<T>(x + a.x, y + a.y, width, height); }

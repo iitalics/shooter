@@ -11,6 +11,7 @@ GameView::~GameView () {}
 
 void GameView::update (Display* disp, float dt)
 {
+	_game.updateInput(disp, dt);
 	_game.update(dt);
 }
 

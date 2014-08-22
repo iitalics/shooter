@@ -1,6 +1,7 @@
 #include "include.h"
 #include "Display.h"
 #include <fstream>
+#include <algorithm>
 #include <cstdlib>
 
 Display::Display ()
@@ -16,6 +17,10 @@ Display::Display ()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
 	setOptions(1240, 680, false);
+
+
+	// a little test
+	std::ofstream log("keys-log.txt");
 }
 
 Display::~Display ()
@@ -66,7 +71,7 @@ void Display::_dump ()
 	_diemsg.str("");
 }
 
-void Display::setView (std::unique_ptr<View>&& view)
+void Display::setView (std::unique_ptr<View> view)
 {
 	_oldView = std::move(_view);
 	_view = std::move(view);
@@ -132,28 +137,36 @@ bool Display::show ()
 		return false;
 	}
 
+	if (!_window)
+		return true;
+
 	// poll events
 	SDL_Event e;
 	while (SDL_PollEvent(&e))
 		switch (e.type)
 		{
 		case SDL_QUIT:
-			_quit = true;
+			quit();
 			return false;
 
+		case SDL_KEYDOWN:
+			_pressed(e.key.keysym.sym);
+			break;
+
+		case SDL_KEYUP:
+			_released(e.key.keysym.sym);
+			break;
+		
 		default:
 			break;
 		}
 
-	if (!_window)
-		return true;
-	
 	// get delta time
 	u32 now = SDL_GetTicks();
 	u32 diff = now - _ticks;
 	_ticks = now;
 
-	// eliminate unusual errors
+	// eliminate unusual framerate errors (dragging, etc)
 	if (diff > (1000 / MinFPS))
 		diff = 1000 / MinFPS;
 	else if (diff == 0)
@@ -167,8 +180,21 @@ bool Display::show ()
 		_accumulate += diff;
 		while (_accumulate >= desired_diff)
 		{
-			_view->update(this, 1.f / _fps);
+			try
+			{
+				_view->update(this, 1.f / _fps);
+			}
+			catch (std::exception& e)
+			{
+				die() << e.what();
+				return false;
+			}
+
 			_accumulate -= desired_diff;
+
+			// expire old keys states
+			for (key_state& ks : _keys)
+				ks.expire();
 		}
 		_view->draw(this);
 	}
@@ -179,6 +205,47 @@ bool Display::show ()
 	SDL_Delay(2);
 	return true;
 }
+
+
+
+bool Display::keyDown (SDL_Keycode k)
+{
+	for (auto& ks : _keys)
+		if (ks.key == k)
+			return true;
+	return false;
+}
+bool Display::keyPressed (SDL_Keycode k)
+{
+	for (auto& ks : _keys)
+		if (ks.key == k)
+			return ks.first;
+
+	return false;
+}
+
+void Display::_pressed (SDL_Keycode key)
+{
+	for (auto& ks : _keys)
+		if (ks.key == key)
+			return;
+	
+	_keys.emplace_back(key);
+}
+void Display::_released (SDL_Keycode key)
+{
+	_keys.erase(std::find_if(_keys.begin(), _keys.end(),
+					[key] (key_state& ks)
+					{
+						return ks.key == key;
+					}));
+}
+void Display::key_state::expire ()
+{
+	if (first)
+		first = false;
+}
+
 
 
 View::~View () {}
