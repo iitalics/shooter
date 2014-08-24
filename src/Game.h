@@ -1,8 +1,10 @@
 #pragma once
+#include <memory>
 #include "Input.h"
 
 class Player;
 class Display;
+class Map;
 
 class Game
 {
@@ -12,18 +14,17 @@ public:
 
 	// fields
 	inline std::vector<Player>& players () { return _players; }
+	inline Map* map () const { return _map.get(); }
 
 	// properties
 	Player* userPlayer ();
 
 	// actions
-	void update (float dt);
-	void updateInput (Display* disp, float dt);
-
-	void drawMap (Display* disp, const vec2f& camera); // GameView.cpp
+	void update (double dt);
+	void updateInput (Display* disp, const vec2f& cam, double dt);
 private:
 	std::vector<Player> _players;
 	Input _input;
 
-	std::vector<vec2f> _map;
+	std::unique_ptr<Map> _map;
 };

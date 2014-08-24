@@ -20,6 +20,33 @@ Display::Display ()
 	setOptions(1240, 680, false);
 }
 
+void Display::_initGL ()
+{
+	// initialize GL
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+#define ANTIALIAS_LINES
+
+	glEnable(GL_BLEND);
+#ifdef ANTIALIAS_LINES
+	glEnable(GL_LINE_SMOOTH);
+#endif
+	//glEnable(GL_POLYGON_SMOOTH);
+	glEnable(GL_ALPHA_TEST);
+
+	glDisable(GL_DEPTH_TEST);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+	//glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+	glOrtho(0, width(), height(), 0, 0, 1);
+}
+
+
 Display::~Display ()
 {
 	SDL_DestroyWindow(_window);
@@ -125,20 +152,7 @@ void Display::setOptions (int w, int h, bool fs)
 		return;
 	}
 
-	// initialize GL
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-	glShadeModel(GL_SMOOTH); 
-
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_ALPHA_TEST);
-
-	glOrtho(0, width(), height(), 0, 0, 1);
+	_initGL();
 }
 
 bool Display::show ()
@@ -191,34 +205,8 @@ bool Display::show ()
 
 	if (_view != nullptr)
 	{
-		_accumulate += diff;
-		while (_accumulate >= desired_diff)
-		{
-			try
-			{
-				_view->update(this, 1.f / _fps);
-				frames++;
-			}
-			catch (std::exception& e)
-			{
-				die() << e.what();
-				return false;
-			}
-
-			_accumulate -= desired_diff;
-
-			// expire old keys states
-			for (key_state& ks : _keys)
-				ks.expire();
-		}
-#ifdef NO_FRAME_SKIP
-		if (_accumulate > 0)
-		{
-			frames++;
-			_view->update(this, _accumulate / (float)tick_s);
-			_accumulate = 0;
-		}
-#endif
+		auto dt = diff / double(tick_s);
+		_view->update(this, dt);
 		_view->draw(this);
 	}
 	else
@@ -233,7 +221,7 @@ bool Display::show ()
 	while ((_now() - n) < sleep_t)
 		; */
 
-	SDL_Delay(6);
+	SDL_Delay(2);
 
 	return true;
 }
@@ -287,4 +275,4 @@ void Display::key_state::expire ()
 
 
 View::~View () {}
-void View::update (Display* disp, float dt) {}
+void View::update (Display* disp, double dt) {}

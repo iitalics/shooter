@@ -8,7 +8,7 @@ Input::Input (Game* game)
 { }
 
 
-void Input::update (Display* disp, float dt)
+void Input::update (Display* disp, const vec2f& camera, double dt)
 {
 	auto player = _game->userPlayer();
 	if (!player)
@@ -27,9 +27,9 @@ void Input::update (Display* disp, float dt)
 		if ((player->move() & Player::MoveX) != move)
 		{
 			if (move)
-				player->move(move);
+				playerMove(player, move);
 			else
-				player->stop(Player::MoveX);
+				playerStop(player, Player::MoveX);
 		}
 
 	move =
@@ -40,8 +40,26 @@ void Input::update (Display* disp, float dt)
 		if ((player->move() & Player::MoveY) != move)
 		{
 			if (move)
-				player->move(move);
+				playerMove(player, move);
 			else
-				player->stop(Player::MoveY);
+				playerStop(player, Player::MoveY);
 		}
+
+	auto mouse = disp->mouse() + camera;
+	auto rot = (mouse - player->position()).rotation();
+	playerTurn(player, rot);
+}
+
+// networking commands go here
+void Input::playerMove (Player* p, Player::Move m)
+{
+	p->move(m);
+}
+void Input::playerStop (Player* p, Player::Move m)
+{
+	p->stop(m);
+}
+void Input::playerTurn (Player* p, float rot)
+{
+	p->turn(rot);
 }

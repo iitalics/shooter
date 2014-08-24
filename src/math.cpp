@@ -4,7 +4,7 @@
 
 namespace math
 {
-    vec2<float> parseVec2(const std::string& str)
+    vec2f parseVec2(const std::string& str)
     {
         std::stringstream ss(str);
         float x, y;
@@ -41,22 +41,22 @@ namespace math
         return rect(data[0], data[1], data[2], data[3]);
     }
 	
-	float random()
+	fp_t random()
 	{
 		// oh boy oh boy
 		static std::default_random_engine gen(std::chrono::system_clock::now().
 									time_since_epoch().
 									count());
 		
-		return gen() / float(gen.max());
+		return gen() / fp_t(gen.max());
 	}
 };
 
 u32 color::rgb() const
 {
-    auto red   = u8(math::clamp(r, 0, 1) * 255);
-    auto green = u8(math::clamp(g, 0, 1) * 255);
-    auto blue  = u8(math::clamp(b, 0, 1) * 255);
+    auto red   = u8(math::clamp<float>(r, 0, 1) * 255);
+    auto green = u8(math::clamp<float>(g, 0, 1) * 255);
+    auto blue  = u8(math::clamp<float>(b, 0, 1) * 255);
 
     // 0xrrggbb
     return (red << 16)  |
@@ -65,10 +65,10 @@ u32 color::rgb() const
 }
 u32 color::rgba() const
 {
-    auto red   = u8(math::clamp(r, 0, 1) * 255);
-    auto green = u8(math::clamp(g, 0, 1) * 255);
-    auto blue  = u8(math::clamp(b, 0, 1) * 255);
-    auto alpha = u8(math::clamp(a, 0, 1) * 255);
+    auto red   = u8(math::clamp<float>(r, 0, 1) * 255);
+    auto green = u8(math::clamp<float>(g, 0, 1) * 255);
+    auto blue  = u8(math::clamp<float>(b, 0, 1) * 255);
+    auto alpha = u8(math::clamp<float>(a, 0, 1) * 255);
 
     // 0xaarrggbb
     return (alpha << 24) |

@@ -12,7 +12,7 @@ public:
 	GameView ();
 	virtual ~GameView ();
 
-	virtual void update (Display* disp, float dt);
+	virtual void update (Display* disp, double dt);
 	virtual void draw (Display* disp);
 
 
@@ -21,4 +21,6 @@ public:
 private:
 	Game _game;
 	vec2f _camera;
+
+	bool _cameraInit;
 };

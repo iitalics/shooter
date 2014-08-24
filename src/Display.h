@@ -26,6 +26,7 @@ public:
 	// fields
 	inline int width () const { return _width; }
 	inline int height () const { return _height; }
+	inline vec2f size () const { return vec2f(_width, _height); }
 	inline void setFramerate (int fps) { _fps = fps; }
 
 	// properties
@@ -53,6 +54,7 @@ private:
 	std::string _title;
 	SDL_Window* _window;
 	SDL_GLContext _ctx;
+	void _initGL ();
 
 	// timing
 	using interval_t = std::chrono::milliseconds;
@@ -101,6 +103,6 @@ class View
 public:
 	virtual ~View ();
 
-	virtual void update (Display*, float dt);
+	virtual void update (Display*, double dt);
 	virtual void draw (Display*) = 0;
 };

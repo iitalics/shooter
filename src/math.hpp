@@ -54,6 +54,7 @@ struct vec2
 
 
     T mag () const { return sqrtf(x * x + y * y); }
+	float rotation () const { return atan2f(float(y), float(x)); }
     static vec2<T> unit (float rot) { return vec2<T>(cosf(rot), sinf(rot)); }
 
     T distance (const vec2<T>& b) const { return (*this - b).mag(); }
@@ -162,30 +163,41 @@ struct color
     static color lerpRGB (float amt, const color& a, const color& b, float alpha = 1);
 };
 
+typedef double fp_t;
+
+typedef vec2<fp_t> vec2f;
+typedef vec2<int> vec2i;
+typedef rectangle<fp_t> rect;
 
 namespace math
 {
-    inline float constexpr min (float a, float b)
+	template <typename T=fp_t>
+    inline T constexpr min (T a, T b)
         { return (a < b) ? a : b; }
-    inline float constexpr max (float a, float b)
+	
+	template <typename T=fp_t>
+    inline T constexpr max (T a, T b)
         { return (a > b) ? a : b; }
-    float constexpr clamp (float v, float mn, float mx)
+	
+	template <typename T=fp_t>
+    T constexpr clamp (T v, T mn, T mx)
         { return (v < mn) ? mn : ((v > mx) ? mx : v); }
 
     template <typename T>
-    T constexpr lerp (float amount, T x, T y)
+    T constexpr lerp (fp_t amount, T x, T y)
         { return T(x + (y - x) * amount); }
 
-    static const float constexpr pi = 3.1415926535f;
-    static inline float constexpr degrees (float q) { return q * (180.f / pi); }
-    static inline float constexpr radians (float q) { return q * (pi / 180.f); }
+    static const fp_t constexpr pi = fp_t(3.1415926535);
+    static inline fp_t constexpr degrees (fp_t q) { return q * (180 / pi); }
+    static inline fp_t constexpr radians (fp_t q) { return q * (pi / 180); }
 
-    float random();
-	inline float random (float n) { return random() * n; }
-	inline float random (float a, float b) { return a + random(b - a); }
+    fp_t random();
+	using rand_t = decltype(random());
+	inline rand_t random (rand_t n) { return random() * n; }
+	inline rand_t random (rand_t a, rand_t b) { return a + random(b - a); }
 	
-    vec2<float> parseVec2 (const std::string& str);
-    rectangle<float> parseRect (const std::string& str);
+    vec2f parseVec2 (const std::string& str);
+    rect parseRect (const std::string& str);
 };
 
 template <typename T>
@@ -200,7 +212,3 @@ inline std::ostream& operator<< (std::ostream& stream, const rectangle<T>& o)
 	return stream << "[" << o.x << ", " << o.y << ", "
 		          << o.width << ", " << o.height << "]";
 }
-
-typedef vec2<float> vec2f;
-typedef vec2<int> vec2i;
-typedef rectangle<float> rect;

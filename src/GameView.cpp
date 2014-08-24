@@ -2,24 +2,34 @@
 #include "GameView.h"
 #include "Game.h"
 #include "Player.h"
+#include "Map.h"
 
 
 GameView::GameView ()
-	: _camera()
+	: _game(),
+	  _cameraInit(false)
 { }
 
 GameView::~GameView () {}
 
 
 
-void GameView::update (Display* disp, float dt)
+void GameView::update (Display* disp, double dt)
 {
-	_game.updateInput(disp, dt);
+	_game.updateInput(disp, _camera, dt);
 	_game.update(dt);
 
 	auto p = _game.userPlayer();
 	if (p)
-		positionCamera(disp, p);
+	{
+		if (!_cameraInit)
+			_camera = p->position() - disp->size() / 2;
+		else
+			positionCamera(disp, p);
+		_cameraInit = true;
+	}
+	else
+		_cameraInit = false;
 }
 
 void GameView::draw (Display* disp)
@@ -29,7 +39,7 @@ void GameView::draw (Display* disp)
 	glPushMatrix();
 	glTranslatef(-_camera.x, -_camera.y, 0);
 
-	_game.drawMap(disp, _camera);
+	_game.map()->draw(disp, _camera);
 
 	for (auto& p : _game.players())
 		p.draw();
@@ -42,7 +52,7 @@ void GameView::positionCamera (Display* disp, Player* p)
 	auto w = disp->width();
 	auto h = disp->height();
 	auto pos = p->position();
-	auto pad = .2f;
+	auto pad = .4f;
 
 	rect box { 
 		.x = w * pad + _camera.x,
@@ -67,12 +77,3 @@ void GameView::positionCamera (Display* disp, Player* p)
 }
 
 
-
-void Game::drawMap (Display* disp, const vec2f& camera)
-{
-	color(.2f).gl();
-	glBegin(GL_LINE_STRIP);
-	for (auto& v : _map)
-		v.gl();
-	glEnd();
-}

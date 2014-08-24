@@ -29,18 +29,21 @@ public:
 	inline Move move () const { return _move; }
 
 	// properties
-	inline float radius () const { return 24; }
-	float speed () const;
+	inline int radius () const { return 24; }
+	int speed () const;
 
 	// actions
-	void update (Game* game, float dt);
+	void update (Game* game, double dt);
 	void draw ();
 
 	void move (Move m);
 	void stop (Move m);
+	void turn (float rot, bool instant = false);
 
 private:
-	float _rotation;
+	float _rotation,
+		_destRotation;
+	
 	vec2f _position;
 	vec2f _velocity;
 	Move _move;
