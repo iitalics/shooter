@@ -1,8 +1,14 @@
 #pragma once
 #include <sstream>
 #include <list>
+#include <chrono>
 
 class View;
+
+enum class Button
+{
+	Left, Right, Middle
+};
 
 class Display
 {
@@ -10,9 +16,10 @@ public:
 	enum
 	{
 		MinFPS = 10,
-		MaxFPS = 120,
+		MaxFPS = 200,
 		DefaultFPS = 60
 	};
+	
 	Display ();
 	~Display ();
 
@@ -29,6 +36,8 @@ public:
 	{
 		setView(std::unique_ptr<View>(view));
 	}
+	vec2f mouse () const;
+	bool mouseButton (Button b = Button::Left) const;
 
 	bool keyDown (SDL_Keycode k);
 	bool keyPressed (SDL_Keycode k); // just pressed this frame
@@ -46,9 +55,17 @@ private:
 	SDL_GLContext _ctx;
 
 	// timing
-	u32 _ticks,
-		_accumulate,
-		_fps;
+	using interval_t = std::chrono::milliseconds;
+	using clock = std::chrono::high_resolution_clock;
+	using tick_t = interval_t::rep;
+	static tick_t constexpr tick_s =
+		interval_t::period::den;
+
+	tick_t _time,
+		   _accumulate,
+		   _fps;
+
+	static tick_t _now ();
 
 	// views
 	std::unique_ptr<View> _view, _oldView;

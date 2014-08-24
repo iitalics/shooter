@@ -8,19 +8,16 @@ Display::Display ()
 	: _title("simple thing"),
 		_window(nullptr),
 		_ctx(nullptr),
-		_ticks(0), _accumulate(0), _fps(DefaultFPS),
+		_time(_now()), _accumulate(0), _fps(DefaultFPS),
 		_quit(false)
 {
 	SDL_Init(SDL_INIT_VIDEO);
+	//SDL_CaptureMouse(false);
 	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
 	setOptions(1240, 680, false);
-
-
-	// a little test
-	std::ofstream log("keys-log.txt");
 }
 
 Display::~Display ()
@@ -39,6 +36,22 @@ std::string Display::setTitle (const std::string& t)
 		SDL_SetWindowTitle(_window, t.c_str());
 	
 	return _title = t;
+}
+vec2f Display::mouse () const
+{
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	return vec2f(x, y);
+}
+bool Display::mouseButton (Button b) const
+{
+	u32 state = SDL_GetMouseState(nullptr, nullptr);
+	u32 mask =
+		(b == Button::Left)   ? SDL_BUTTON(SDL_BUTTON_LEFT) : 
+		(b == Button::Right)  ? SDL_BUTTON(SDL_BUTTON_RIGHT) :
+		(b == Button::Middle) ? SDL_BUTTON(SDL_BUTTON_MIDDLE) : 0;
+
+	return state & mask;
 }
 
 std::ostream& Display::die ()
@@ -162,19 +175,20 @@ bool Display::show ()
 		}
 
 	// get delta time
-	u32 now = SDL_GetTicks();
-	u32 diff = now - _ticks;
-	_ticks = now;
+	tick_t now = _now();
+	tick_t diff = now - _time;
+	_time = now;
 
 	// eliminate unusual framerate errors (dragging, etc)
-	if (diff > (1000 / MinFPS))
-		diff = 1000 / MinFPS;
+	if (diff > (tick_s / MinFPS))
+		diff = tick_s / MinFPS;
 	else if (diff == 0)
-		diff = 1000 / MaxFPS;
+		diff = tick_s / MaxFPS;
 
 	// constant framerate for update()
-	const u32 desired_diff = 1000 / _fps;
-	
+	const tick_t desired_diff = tick_s / _fps;
+	int frames = 0;
+
 	if (_view != nullptr)
 	{
 		_accumulate += diff;
@@ -183,6 +197,7 @@ bool Display::show ()
 			try
 			{
 				_view->update(this, 1.f / _fps);
+				frames++;
 			}
 			catch (std::exception& e)
 			{
@@ -196,14 +211,37 @@ bool Display::show ()
 			for (key_state& ks : _keys)
 				ks.expire();
 		}
+#ifdef NO_FRAME_SKIP
+		if (_accumulate > 0)
+		{
+			frames++;
+			_view->update(this, _accumulate / (float)tick_s);
+			_accumulate = 0;
+		}
+#endif
 		_view->draw(this);
 	}
 	else
 		color(.5f, .8f, 1.f).glApplyClear();
 
 	SDL_GL_SwapWindow(_window);
-	SDL_Delay(2);
+
+	
+	/* const double sleep_s = 1.0 / 100.0;
+	const time_t sleep_t = time_t(tick_s * sleep_s);
+	auto n = _now();
+	while ((_now() - n) < sleep_t)
+		; */
+
+	SDL_Delay(6);
+
 	return true;
+}
+
+Display::tick_t Display::_now ()
+{
+	return std::chrono::duration_cast<interval_t>(
+			clock::now().time_since_epoch()).count();
 }
 
 

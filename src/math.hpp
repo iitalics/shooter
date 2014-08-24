@@ -120,6 +120,8 @@ struct rectangle
     inline vec2<T> size () const
         { return vec2<T>(width, height); }
 
+	inline T left () const { return x; }
+	inline T top () const { return y; }
     inline T right () const { return x + width; }
     inline T bottom () const { return y + height; }
 
