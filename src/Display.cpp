@@ -64,6 +64,8 @@ std::string Display::setTitle (const std::string& t)
 	
 	return _title = t;
 }
+
+// mouse stuff
 vec2f Display::mouse () const
 {
 	int x, y;
@@ -81,6 +83,8 @@ bool Display::mouseButton (Button b) const
 	return state & mask;
 }
 
+
+// error handling
 std::ostream& Display::die ()
 {
 	_died = true;
@@ -117,6 +121,7 @@ void Display::setView (std::unique_ptr<View> view)
 	_view = std::move(view);
 }
 
+// init window
 void Display::setOptions (int w, int h, bool fs)
 {
 	if (_window)
@@ -155,6 +160,7 @@ void Display::setOptions (int w, int h, bool fs)
 	_initGL();
 }
 
+// show the screen
 bool Display::show ()
 {
 	if (_quit)
@@ -198,10 +204,6 @@ bool Display::show ()
 		diff = tick_s / MinFPS;
 	else if (diff == 0)
 		diff = tick_s / MaxFPS;
-
-	// constant framerate for update()
-	const tick_t desired_diff = tick_s / _fps;
-	int frames = 0;
 
 	if (_view != nullptr)
 	{
