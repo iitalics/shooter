@@ -1,6 +1,5 @@
 PLATFORM=auto
-PUBLISH=
-
+# set "PUBLISH" to anything for non-debug release
 
 OUTPUT=shoot
 BIN=bin
@@ -11,13 +10,13 @@ OBJ=obj
 INCLUDE=
 LIBRARY=-lSDL2
 
-CONSTANTS=
+CONSTANTS=NO_FRAME_SKIP
 GLOBAL_HEADERS=include.h math.hpp
 
 
 CXX=g++
-CXXFLAGS=-std=c++11 -Wall -Wno-unused -O2
-LXXFLAGS=-std=c++11 -O2
+CXXFLAGS=-fexceptions -std=c++11 -Wall -Wno-unused -O2
+LXXFLAGS=-fexceptions -std=c++11 -O2
 
 
 #-----------------------------------------------------------#
@@ -63,6 +62,8 @@ ifeq "$(OS)" "Windows_NT"
 	LIBRARY:=-lopengl32 -lSDL2main $(LIBRARY)
 	ifdef PUBLISH
 		LXXFLAGS+=-mwindows
+		
+		LXXFLAGS+=-static-libgcc -static-libstdc++
 	endif
 endif
 
@@ -124,14 +125,19 @@ bad_platform:
 	@echo Invalid platform '$(PLATFORM)'
 	
 $(EXEC): $(OBJECTS) Makefile
-	$(CXX) $(OBJECTS) $(LXXFLAGS) -o $@
+	@echo "*  $(PUBLISH:%=[publish] )building executable '$@'"
+	@$(CXX) $(OBJECTS) $(LXXFLAGS) -o $@
 
 $(OBJ)/%.o: $(GLOBAL_HEADERS:%=$(SRC)/%)
 $(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) $< $(CXXFLAGS) -c -o $@
+	@echo "*  $(PUBLISH:%=[publish] )building '$@'"
+	@$(CXX) $< $(CXXFLAGS) -c -o $@
 
 clean:
-	$(DEL) $(OBJECTS_DEL) $(OUTPUT)
+	@echo "*  cleaning"
+	@$(DEL) $(OBJECTS_DEL) $(OUTPUT)
+
+
 
 $(OBJ):
 	mkdir $@
@@ -144,3 +150,8 @@ $(BIN):
 rebuild: clean all
 go: all
 	cd $(BIN) && ./$(OUTPUT)
+
+rebuild-%: del-% 
+	@make $(@:rebuild-%="$(OBJ)/%.o")
+del-%:
+	$(DEL) $(@:del-%="$(OBJ)/%.o")
