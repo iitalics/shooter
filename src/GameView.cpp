@@ -6,20 +6,23 @@
 
 
 GameView::GameView ()
-	: _game(),
+	: _game(new Game()),
 	  _cameraInit(false)
 { }
 
-GameView::~GameView () {}
+GameView::~GameView ()
+{
+	delete _game;
+}
 
 
 
 void GameView::update (Display* disp, double dt)
 {
-	_game.updateInput(disp, _camera, dt);
-	_game.update(dt);
+	_game->updateInput(disp, _camera, dt);
+	_game->update(dt);
 
-	auto p = _game.userPlayer();
+	auto p = _game->userPlayer();
 	if (p)
 	{
 		if (!_cameraInit)
@@ -39,16 +42,19 @@ void GameView::draw (Display* disp)
 	glPushMatrix();
 	glTranslatef(-_camera.x, -_camera.y, 0);
 
-	_game.map()->draw(disp, _camera);
+	_game->map()->draw(disp, _camera);
 
-	for (auto& p : _game.players())
+	for (auto& p : _game->players())
 		p.draw();
 
 	glPopMatrix();
+
+	_game->drawOverlay(disp);
 }
 
 void GameView::positionCamera (Display* disp, Player* p)
 {
+	/*
 	auto w = disp->width();
 	auto h = disp->height();
 	auto pos = p->position();
@@ -60,8 +66,6 @@ void GameView::positionCamera (Display* disp, Player* p)
 		.width = w * (1 - pad - pad),
 		.height = h * (1 - pad - pad) };
 
-	auto dest = _camera;
-
 	if (pos.x < box.x)
 		dest.x += pos.x - box.x;
 	else if (pos.x > box.right())
@@ -71,8 +75,14 @@ void GameView::positionCamera (Display* disp, Player* p)
 		dest.y += pos.y - box.y;
 	else if (pos.y > box.bottom())
 		dest.y += pos.y - box.bottom();
+	*/
+	auto mouse = disp->mouse() + _camera;
+	auto lookOffset = mouse - p->position();
 
-	_camera = math::lerp(.1f,
+	auto dest = p->position() - disp->size() / 2 +
+					lookOffset * .12f;
+
+	_camera = math::lerp(.2f,
 					_camera, dest);
 }
 

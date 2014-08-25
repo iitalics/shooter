@@ -19,7 +19,7 @@ public:
 	void positionCamera (Display* d, Player* p);
 
 private:
-	Game _game;
+	Game* _game;
 	vec2f _camera;
 
 	bool _cameraInit;
