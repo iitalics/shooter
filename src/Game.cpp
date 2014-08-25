@@ -6,14 +6,15 @@
 
 Game::Game ()
 	: _input(this),
+	  _world(new b2World({ 0, 0 })),
 	  _map(new Map())
 {
-	_players.push_back(Player(vec2f()));
+	_players.push_back(Player(this, _map->size() / 2));
 }
 
 Game::~Game ()
-{
-}
+{ }
+
 
 
 Player* Game::userPlayer ()
@@ -38,7 +39,13 @@ void Game::update (double dt)
 	for (auto& p : _players)
 		p.update(this, dt);
 
-	// TODO: crazy things
+	_world->Step(float(dt), 1, 1);
+}
+
+
+
+void Game::drawOverlay (Display* disp)
+{
 }
 
 

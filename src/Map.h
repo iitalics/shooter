@@ -10,8 +10,8 @@ public:
 	~Map ();
 
 	// fields
-	inline int width () const { return 3000; }
-	inline int height () const { return 2000; }
+	inline int width () const { return 2000; }
+	inline int height () const { return 1000; }
 	
 	// properties
 	inline vec2f size () const { return vec2f(width(), height()); }

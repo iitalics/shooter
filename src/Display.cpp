@@ -223,7 +223,7 @@ bool Display::show ()
 	while ((_now() - n) < sleep_t)
 		; */
 
-	SDL_Delay(2);
+	SDL_Delay(3);
 
 	return true;
 }

@@ -8,15 +8,17 @@ OBJ=obj
 
 
 INCLUDE=
-LIBRARY=-lSDL2
+LIBRARY=-lSDL2 -lBox2D
 
 CONSTANTS=NO_FRAME_SKIP
 GLOBAL_HEADERS=include.h math.hpp
 
+SHARED=-fexceptions -std=c++11 -O2
 
 CXX=g++
-CXXFLAGS=-fexceptions -std=c++11 -Wall -Wno-unused -O2
-LXXFLAGS=-fexceptions -std=c++11 -O2
+#                                    box2d gives aliasing warnings
+CXXFLAGS=$(SHARED) -Wall -Wno-unused -Wno-strict-aliasing
+LXXFLAGS=$(SHARED)
 
 
 #-----------------------------------------------------------#

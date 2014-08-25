@@ -61,5 +61,5 @@ void Input::playerStop (Player* p, Player::Move m)
 }
 void Input::playerTurn (Player* p, float rot)
 {
-	p->turn(rot);
+	p->turn(rot, true);
 }
