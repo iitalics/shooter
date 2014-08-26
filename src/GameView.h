@@ -21,6 +21,7 @@ public:
 private:
 	Game* _game;
 	vec2f _camera;
-
 	bool _cameraInit;
+
+	vec2f _raycast;
 };

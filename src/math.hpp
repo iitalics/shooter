@@ -212,3 +212,8 @@ inline std::ostream& operator<< (std::ostream& stream, const rectangle<T>& o)
 	return stream << "[" << o.x << ", " << o.y << ", "
 		          << o.width << ", " << o.height << "]";
 }
+
+#include <Box2D/Common/b2Math.h>
+
+vec2f from_b2 (const b2Vec2&);
+b2Vec2 to_b2 (const vec2f&);

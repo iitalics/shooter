@@ -7,7 +7,7 @@
 Game::Game ()
 	: _input(this),
 	  _world(new b2World({ 0, 0 })),
-	  _map(new Map())
+	  _map(new Map(this))
 {
 	_players.push_back(Player(this, _map->size() / 2));
 }
@@ -48,4 +48,12 @@ void Game::drawOverlay (Display* disp)
 {
 }
 
+
+float32 FunctionCallback::ReportFixture (b2Fixture* fix,
+							const b2Vec2& pos, 
+							const b2Vec2& normal,
+							float32 fraction)
+{
+	return _func(fix, pos, normal, fraction);
+}
 

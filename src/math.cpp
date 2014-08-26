@@ -1,4 +1,5 @@
 #include "include.h"
+#include "Game.h"
 #include <random>
 #include <chrono>
 
@@ -105,3 +106,20 @@ color color::lerpRGB(float amt, const color& a, const color& b, float alpha)
                  math::lerp(amt, a.b, b.b),
                  alpha);
 }
+
+
+vec2f from_b2 (const b2Vec2& inp)
+{
+	return vec2f {
+		inp.x * Game::WorldScale,
+		inp.y * Game::WorldScale
+	};
+}
+b2Vec2 to_b2 (const vec2f& inp)
+{
+	return b2Vec2 {
+		float(inp.x / Game::WorldScale),
+		float(inp.y / Game::WorldScale)
+	};
+}
+

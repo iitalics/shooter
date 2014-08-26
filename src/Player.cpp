@@ -28,14 +28,14 @@ b2Body* Player::generateBody (const vec2f& pos)
 	
 	b2BodyDef def;
 	def.type = b2_dynamicBody;
-	def.position = { float(pos.x / Game::WorldScale),
-		             float(pos.y / Game::WorldScale) };
+	def.position = to_b2(pos);
 
 	b2CircleShape shape;
 	shape.m_radius = Radius / float(Game::WorldScale);
 
 	_body = world->CreateBody(&def);
-	_body->CreateFixture(&shape, 1.f);
+	auto fix = _body->CreateFixture(&shape, 1.f);
+	fix->SetUserData(Game::UserData_Player);
 
 	return _body;
 }
@@ -46,8 +46,7 @@ vec2f Player::position () const
 	if (_body)
 	{
 		auto pos = _body->GetPosition();
-		return vec2f(pos.x * Game::WorldScale,
-					 pos.y * Game::WorldScale);
+		return from_b2(pos);
 	}
 	else
 		return vec2f();
@@ -116,10 +115,7 @@ void Player::update (Game* game, double dt)
 			_velocity.y = math::min(0.0,
 						_velocity.y + speedup * dt);
 
-	b2Vec2 vel;
-	vel.x = float(_velocity.x / Game::WorldScale);
-	vel.y = float(_velocity.y / Game::WorldScale);
-	_body->SetLinearVelocity(vel);
+	_body->SetLinearVelocity(to_b2(_velocity));
 }
 
 

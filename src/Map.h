@@ -1,17 +1,34 @@
 #pragma once
-
+#include <Box2D/Box2D.h>
 #include "Display.h"
 
-// this is just temporary
+class Game;
+
 class Map
 {
 public:
-	Map ();
+	explicit Map (Game* game);
 	~Map ();
+
+	// pod structs
+	struct obstacle
+	{
+		enum { MaxVertices = 8 };
+
+		explicit obstacle (const std::vector<vec2f>& v);
+
+		b2Body* createBody (Game* game);
+
+		int numVertices;
+		vec2f vertices[MaxVertices];
+		b2Body* body;
+	};
+	using obstacles_t = std::vector<obstacle>;
 
 	// fields
 	inline int width () const { return 2000; }
 	inline int height () const { return 1000; }
+	inline const obstacles_t& obstacles () const { return _obstacles; }
 	
 	// properties
 	inline vec2f size () const { return vec2f(width(), height()); }
@@ -21,4 +38,5 @@ public:
 
 private:
 	std::vector<vec2f> _ground;
+	obstacles_t _obstacles;
 };
