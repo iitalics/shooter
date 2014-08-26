@@ -33,7 +33,7 @@ endif
 SOURCES=$(wildcard $(SRC)/*.cpp)
 OBJECTS=$(SOURCES:$(SRC)/%.cpp=$(OBJ)/%.o)
 OBJECTS_DEL=$(OBJECTS)
-
+OUTPUT_ORIGINAL:=$(OUTPUT)
 DEST=bad_platform
 EXEC=$(BIN)/$(OUTPUT)
 
@@ -157,3 +157,16 @@ rebuild-%: del-%
 	@make $(@:rebuild-%="$(OBJ)/%.o")
 del-%:
 	$(DEL) $(@:del-%="$(OBJ)/%.o")
+
+PACKAGE=$(OUTPUT_ORIGINAL).tar.bz2
+PACKAGE_BASE=_package
+PACKAGE_FOLDER=$(PACKAGE_BASE)/$(OUTPUT_ORIGINAL)
+
+package: $(EXEC)
+	@echo "*  packaging -> $(PACKAGE)"
+	
+	@mkdir -p $(PACKAGE_FOLDER)
+	@cp -r $(wildcard $(BIN)/*) $(PACKAGE_FOLDER)
+	@cd $(PACKAGE_BASE) && \
+	tar -czf ../$(PACKAGE) $(OUTPUT_ORIGINAL)
+	@rm -rf $(PACKAGE_BASE)
